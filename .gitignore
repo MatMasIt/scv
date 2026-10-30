@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.coverage
+build/work/
+build/spec/
+build/entry_*.py
+dist/
+*.scv
+*.mp4
+*.partial.mp4
+*.log

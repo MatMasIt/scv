@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SCV Encoder
+Comment=Convert lectures to SCV files
+Exec=scv-encoder
+Icon=scv
+Terminal=false
+Categories=AudioVideo;Education;
+StartupNotify=true

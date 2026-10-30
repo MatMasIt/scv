@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scv-suite"
+version = "1.0.0"
+description = "Slide Compressed Video: encoder, player and MP4 exporter"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{name = "Mattia Mascarello"}]
+dependencies = ["numpy>=1.24", "Pillow>=10", "PySide6>=6.6", "pytesseract>=0.3.13"]
+
+[project.scripts]
+scv = "scv.cli:main"
+scv-studio = "scv.studio:main"
+scv-encoder = "scv.encoder:main"
+scv-player = "scv.player:main"
+scv-export = "scv.exporter:main"
+scv-exporter = "scv.export_gui:main"
+scv-bookmarks = "scv.bookmarks:main"
+
+[tool.setuptools.packages.find]
+include = ["scv*"]
+
+[tool.setuptools.package-data]
+scv = ["assets/*.svg"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = ["build", "dist"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+include = ["scv", "tests"]
+exclude = ["build", "dist"]
+pythonVersion = "3.10"
+typeCheckingMode = "basic"
+reportMissingImports = "warning"

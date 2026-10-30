@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleIdentifier</key><string>org.scv.player</string>
+<key>CFBundleName</key><string>SCV Player</string>
+<key>CFBundleExecutable</key><string>scv-player</string>
+<key>CFBundleDocumentTypes</key><array><dict>
+<key>CFBundleTypeName</key><string>SCV lecture</string>
+<key>CFBundleTypeExtensions</key><array><string>scv</string></array>
+<key>CFBundleTypeRole</key><string>Viewer</string>
+<key>LSHandlerRank</key><string>Owner</string>
+</dict></array>
+</dict></plist>

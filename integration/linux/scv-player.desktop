@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SCV Player
+Comment=Play Slide Compressed Video lectures
+Exec=scv-player %f
+Icon=scv
+Terminal=false
+Categories=AudioVideo;Player;Education;
+MimeType=application/x-scv;
+StartupNotify=true
