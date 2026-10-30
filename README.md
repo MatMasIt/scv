@@ -16,7 +16,7 @@ The package provides a lecture player, batch encoder, MP4 exporter, and
 command-line interface. The player supports slide search, annotations,
 bookmarks, notes, and optional playback resume.
 
- The player is written in PyQt6 and the encoder uses FFmpeg and FFprobe. The project is cross-platform and runs on Linux, Windows, and macOS.
+ The player is written in PyQt6 and the encoder uses FFmpeg and FFprobe. The project is cross-platform and runs on Linux, Windows, and macOS. SCV is localized in English, Italian and French.
 
 ## Screenshots
 
