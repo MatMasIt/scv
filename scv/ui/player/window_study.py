@@ -51,6 +51,11 @@ class PlayerWindowStudyMixin(PlayerWindowHost):
         self.viewer.set_annotation_mode(tool)
         self.study_dock.set_active_tool(tool)
 
+    def _on_study_dock_visibility_changed(self, visible: bool) -> None:
+        """Return to pointer mode when the study tools panel is closed."""
+        if not visible:
+            self._on_tool_selected(DrawingTool.SELECT_PAN)
+
     def _on_viewer_annotation_clicked(self, index: int) -> None:
         """Open the study dock and select the clicked slide annotation."""
         self.show_study_dock()

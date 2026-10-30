@@ -111,6 +111,7 @@ class PlayerWindowResumeMixin(PlayerWindowHost):
     def _on_config_changed(self, settings: AppSettings) -> None:
         """Apply resume preference changes while a lecture is open."""
         self._apply_resume_banner_theme(settings.theme)
+        self.study_dock.apply_theme(settings.theme)
         was_enabled = self._resume_setting_enabled
         self._resume_setting_enabled = settings.resume_playback
         if not settings.resume_playback:

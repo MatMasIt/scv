@@ -3,7 +3,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 from PySide6.QtCore import Qt, Signal, QEvent, QObject, QPoint
-from PySide6.QtGui import QColor, QKeyEvent
+from PySide6.QtGui import QColor, QKeyEvent, QPalette
 from PySide6.QtWidgets import (
     QDockWidget,
     QWidget,
@@ -64,9 +64,10 @@ class StudyDockWidget(QDockWidget):
     noteVisibilityChanged = Signal(int, bool)
     selectionChanged = Signal(bool)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None, theme: str = "system") -> None:
         """Initialize the study lists, editing actions, and drawing tools."""
         super().__init__(t("study"), parent)
+        self._theme = theme
         self.setAllowedAreas(
             Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea
         )
@@ -130,11 +131,7 @@ class StudyDockWidget(QDockWidget):
             btn.setToolTip(tool.display_name)
             btn.setCheckable(True)
             btn.setFixedSize(38, 34)
-            btn.setStyleSheet(
-                f"QToolButton {{ color: {tool.color}; font-size: 19px; }}"
-                "QToolButton:checked { background: #dbeafe; border: 2px solid #2563eb; "
-                "border-radius: 4px; }"
-            )
+            self._set_tool_button_style(btn, tool)
             btn.clicked.connect(lambda checked=False, t=tool: self.toolSelected.emit(t))
             self.button_group.addButton(btn)
             toolbox_layout.addWidget(btn)
@@ -152,6 +149,28 @@ class StudyDockWidget(QDockWidget):
 
         self.setWidget(panel)
         self._refresh_actions()
+
+    def _set_tool_button_style(self, button: QToolButton, tool: DrawingTool) -> None:
+        """Apply a readable icon color for the active application theme."""
+        dark_theme = self._theme == "dark" or (
+            self._theme == "system"
+            and self.palette().color(QPalette.ColorRole.Window).lightness() < 128
+        )
+        icon_color = "#f9fafb" if tool == DrawingTool.SELECT_PAN and dark_theme else tool.color
+        checked_icon_color = (
+            "#374151" if tool == DrawingTool.SELECT_PAN and dark_theme else tool.color
+        )
+        button.setStyleSheet(
+            f"QToolButton {{ color: {icon_color}; font-size: 19px; }}"
+            f"QToolButton:checked {{ color: {checked_icon_color}; background: #dbeafe; "
+            "border: 2px solid #2563eb; border-radius: 4px; }"
+        )
+
+    def apply_theme(self, theme: str) -> None:
+        """Refresh tool icon colors after the application theme changes."""
+        self._theme = theme
+        for tool, button in self.tool_buttons.items():
+            self._set_tool_button_style(button, tool)
 
     def set_active_tool(self, tool: DrawingTool) -> None:
         """Mark the selected drawing tool as active in the toolbar."""
@@ -172,6 +191,8 @@ class StudyDockWidget(QDockWidget):
 
     def refresh_from_document(self, document: StudyDocument) -> None:
         """Populate list widgets with typed items from ``document``."""
+        selected_target = self.current_target()
+        selected_tab_index = self.study_tabs.currentIndex()
         for widget in (self.bookmark_list, self.note_list, self.annotation_list):
             widget.blockSignals(True)
             widget.clear()
@@ -207,7 +228,32 @@ class StudyDockWidget(QDockWidget):
                 row.setForeground(QColor(stroke.color))
                 self.annotation_list.addItem(row)
 
+        self._restore_selection(selected_target, selected_tab_index)
         self._refresh_actions()
+
+    def _restore_selection(
+        self, target: StudyItemTarget | None, tab_index: int
+    ) -> None:
+        """Keep the selected study item and tab across a document refresh."""
+        if target is None:
+            self.study_tabs.setCurrentIndex(tab_index)
+            return
+
+        list_widget = {
+            "bookmark": self.bookmark_list,
+            "note": self.note_list,
+            "annotation": self.annotation_list,
+        }.get(target.kind)
+        if list_widget is None:
+            self.study_tabs.setCurrentIndex(tab_index)
+            return
+
+        self.study_tabs.setCurrentWidget(list_widget)
+        for row in range(list_widget.count()):
+            item = list_widget.item(row)
+            if item.data(Qt.ItemDataRole.UserRole) == target:
+                list_widget.setCurrentItem(item)
+                return
 
     def select_annotation(self, slide_index: int, annotation_index: int) -> None:
         """Select the requested annotation."""

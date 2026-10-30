@@ -172,7 +172,7 @@ class PlayerWindow(
         outer.addWidget(self.transport_bar)
 
         # Study Dock Widget
-        self.study_dock = StudyDockWidget(self)
+        self.study_dock = StudyDockWidget(self, theme=self.config_mgr.settings.theme)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.study_dock)
         self.study_dock.hide()
 
@@ -254,3 +254,4 @@ class PlayerWindow(
         self.study_dock.toolSelected.connect(self._on_tool_selected)
         self.study_dock.noteVisibilityChanged.connect(self._on_note_visibility_changed)
         self.study_dock.selectionChanged.connect(lambda _: self._update_action_states())
+        self.study_dock.visibilityChanged.connect(self._on_study_dock_visibility_changed)

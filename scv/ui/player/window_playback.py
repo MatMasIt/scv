@@ -185,7 +185,6 @@ class PlayerWindowPlaybackMixin(PlayerWindowHost):
         self.viewer.set_annotations(self.document.get_slide_annotations(index))
         self._refresh_slide_image()
         self.slides_dock.set_current_slide(index)
-        self._refresh_study_ui()
 
     def _refresh_slide_image(self) -> None:
         """Refresh the viewer with the current source pixmap."""
