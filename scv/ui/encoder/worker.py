@@ -16,7 +16,8 @@ class QueueWorker(QThread):
     queue_done = Signal()
     queue_failed = Signal()
 
-    def __init__(self, items: list[EncodeTask], settings: Settings):
+    def __init__(self, items: list[EncodeTask], settings: Settings) -> None:
+        """Initialize this component and its state."""
         super().__init__()
         self.items = list(items)
         self.settings = settings
@@ -24,12 +25,12 @@ class QueueWorker(QThread):
         self.stop_requested = False
         self.service = EncodingService()
 
-    def stop(self):
+    def stop(self) -> None:
         """Cancel the current conversion and stop processing the queue."""
         self.stop_requested = True
         self.job.cancel()
 
-    def run(self):
+    def run(self) -> None:
         """Encode queued items and emit progress and completion signals."""
         for index, task in enumerate(self.items):
             if self.stop_requested:
@@ -50,7 +51,7 @@ class QueueWorker(QThread):
                 break
         self.queue_done.emit()
 
-    def _report_progress(self, index: int, value: float, description: str):
+    def _report_progress(self, index: int, value: float, description: str) -> None:
         """Update the task model before forwarding progress to Qt."""
         self.items[index].progress = max(0.0, min(1.0, value))
         self.progress.emit(index, value, description)

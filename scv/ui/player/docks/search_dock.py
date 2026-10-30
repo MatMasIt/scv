@@ -1,6 +1,9 @@
 """Slide search dock widget with OCR text matching and preview."""
 
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import Qt, Signal, QSize
 from PySide6.QtGui import QIcon
 from PySide6.QtWidgets import (
@@ -14,17 +17,22 @@ from PySide6.QtWidgets import (
 )
 from scv.i18n import t
 
+if TYPE_CHECKING:
+    from .slides_dock import SlidesDockWidget
+
 
 class SearchDockWidget(QWidget):
     """Panel for querying slides by slide number or recognized OCR text."""
 
     slideSelected = Signal(int)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize the slide search controls and results list."""
         super().__init__(parent)
         self._setup_ui()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Create the search field and slide result list."""
         layout = QVBoxLayout(self)
 
         search_title = QLabel(t("slide_search_title"))
@@ -49,7 +57,9 @@ class SearchDockWidget(QWidget):
         self.search_results.itemDoubleClicked.connect(self._on_item_activated)
         layout.addWidget(self.search_results, 1)
 
-    def filter_from_slides_dock(self, slides_dock, query: str) -> int:
+    def filter_from_slides_dock(
+        self, slides_dock: SlidesDockWidget, query: str
+    ) -> int:
         """Filter slides from ``slides_dock`` matching ``query`` and return match count."""
         clean_query = query.casefold().strip()
         self.search_results.clear()
@@ -113,11 +123,13 @@ class SearchDockWidget(QWidget):
 
         return match_count
 
-    def clear(self):
+    def clear(self) -> None:
+        """Clear the current query and its result rows."""
         self.search_input.clear()
         self.search_results.clear()
 
-    def _on_item_activated(self, item: QListWidgetItem):
+    def _on_item_activated(self, item: QListWidgetItem) -> None:
+        """Emit the slide index stored on an activated result row."""
         index = item.data(Qt.ItemDataRole.UserRole)
         if index is not None:
             self.slideSelected.emit(index)

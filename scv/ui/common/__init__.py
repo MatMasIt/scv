@@ -18,6 +18,7 @@ __all__ = [
 
 
 def __getattr__(name: str) -> Any:
+    """Lazily import and return the requested shared UI helper."""
     if name == "show_about":
         from .about import show_about
 

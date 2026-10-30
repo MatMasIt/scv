@@ -20,13 +20,15 @@ class ProgressPanel(QWidget):
     startRequested = Signal()
     cancelRequested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self._language_listener = self._on_language_changed
         self._setup_ui()
         I18nManager.get_instance().add_listener(self._language_listener)
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build and arrange this widget’s controls."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 4, 0, 4)
 
@@ -54,10 +56,11 @@ class ProgressPanel(QWidget):
 
         layout.addLayout(btn_row)
 
-    def _on_language_changed(self, _language: str):
+    def _on_language_changed(self, _language: str) -> None:
+        """Handle changes to language."""
         self.retranslate_ui()
 
-    def retranslate_ui(self):
+    def retranslate_ui(self) -> None:
         """Refresh visible strings after the active language changes."""
         self.file_progress.setFormat(t("current_file"))
         self.start_btn.setText(t("convert_queue"))
@@ -66,11 +69,13 @@ class ProgressPanel(QWidget):
             return
         self.status_label.setText(t("ready"))
 
-    def set_running_state(self, is_running: bool):
+    def set_running_state(self, is_running: bool) -> None:
+        """Switch progress controls between idle and running states."""
         self.start_btn.setEnabled(not is_running)
         self.cancel_btn.setEnabled(is_running)
 
-    def update_progress(self, total_percent: int, file_percent: int, status_text: str):
+    def update_progress(self, total_percent: int, file_percent: int, status_text: str) -> None:
+        """Update the progress state."""
         self.total_progress.setValue(total_percent)
         self.file_progress.setValue(file_percent)
         self.status_label.setText(status_text)

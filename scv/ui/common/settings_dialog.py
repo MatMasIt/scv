@@ -27,7 +27,8 @@ from scv.i18n import t, get_available_languages
 class SettingsDialog(QDialog):
     """Application preferences dialog with tabbed categories."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self.setWindowTitle(t("settings_title"))
         self.resize(520, 380)
@@ -39,7 +40,8 @@ class SettingsDialog(QDialog):
         self._setup_ui()
         self._load_values()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build and arrange this widget’s controls."""
         main_layout = QVBoxLayout(self)
 
         self.tabs = QTabWidget()
@@ -64,6 +66,7 @@ class SettingsDialog(QDialog):
         main_layout.addLayout(btn_layout)
 
     def _create_general_tab(self) -> QWidget:
+        """Build the tab for language and theme preferences."""
         widget = QWidget()
         form = QFormLayout(widget)
 
@@ -81,6 +84,7 @@ class SettingsDialog(QDialog):
         return widget
 
     def _create_player_tab(self) -> QWidget:
+        """Build the tab for playback, seeking, and study preferences."""
         widget = QWidget()
         form = QFormLayout(widget)
 
@@ -108,6 +112,7 @@ class SettingsDialog(QDialog):
         return widget
 
     def _create_encoding_tab(self) -> QWidget:
+        """Build the tab for encoding, export, and OCR defaults."""
         widget = QWidget()
         form = QFormLayout(widget)
 
@@ -139,14 +144,16 @@ class SettingsDialog(QDialog):
 
         return widget
 
-    def _browse_output_dir(self):
+    def _browse_output_dir(self) -> None:
+        """Choose an output directory and update the path field."""
         folder = QFileDialog.getExistingDirectory(
             self, t("setting_output_dir"), self.output_dir.text()
         )
         if folder:
             self.output_dir.setText(folder)
 
-    def _load_values(self):
+    def _load_values(self) -> None:
+        """Populate preference controls from the current settings."""
         s = self.current_settings
 
         # General
@@ -176,7 +183,8 @@ class SettingsDialog(QDialog):
         if idx >= 0:
             self.ocr_lang_combo.setCurrentIndex(idx)
 
-    def _save_and_close(self):
+    def _save_and_close(self) -> None:
+        """Persist edited preferences and accept the dialog."""
         self.config_mgr.update(
             language=self.lang_combo.currentData(),
             theme=self.theme_combo.currentData(),

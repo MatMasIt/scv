@@ -17,6 +17,7 @@ class ViewportTransform:
 
     @property
     def is_valid(self) -> bool:
+        """Return whether both the widget and slide image have usable sizes."""
         return (
             not self.widget_size.isEmpty()
             and not self.image_size.isEmpty()
@@ -26,6 +27,7 @@ class ViewportTransform:
 
     @property
     def base_scale(self) -> float:
+        """Return the aspect-preserving scale that fits the image in the widget."""
         if not self.is_valid:
             return 1.0
         return min(
@@ -35,10 +37,12 @@ class ViewportTransform:
 
     @property
     def scale(self) -> float:
+        """Return the base scale multiplied by the current zoom factor."""
         return self.base_scale * self.zoom
 
     @property
     def rendered_size(self) -> QSize:
+        """Return the slide dimensions after fitting and zoom are applied."""
         if not self.is_valid:
             return QSize(0, 0)
         return QSize(
@@ -48,6 +52,7 @@ class ViewportTransform:
 
     @property
     def top_left(self) -> QPointF:
+        """Return the widget-space origin of the rendered slide image."""
         if not self.is_valid:
             return QPointF(0, 0)
         center = QPointF(self.widget_size.width() / 2.0, self.widget_size.height() / 2.0)
@@ -56,6 +61,7 @@ class ViewportTransform:
 
     @property
     def image_rect(self) -> QRectF:
+        """Return the widget-space rectangle occupied by the slide image."""
         return QRectF(self.top_left, self.rendered_size)
 
     def to_normalized(self, widget_pos: QPointF) -> NormalizedPoint | None:
@@ -84,4 +90,3 @@ class ViewportTransform:
             return 0.05
         size = self.rendered_size
         return max(pixel_radius / size.width(), pixel_radius / size.height())
-

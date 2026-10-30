@@ -6,7 +6,7 @@ from .window import ExportWindow
 from .worker import ExportWorker
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Create the exporter application and start its Qt event loop."""
     app = QApplication.instance()
     owns_app = False

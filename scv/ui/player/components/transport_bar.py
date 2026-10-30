@@ -24,11 +24,13 @@ class TransportBar(QWidget):
     zoomOutRequested = Signal()
     resetViewRequested = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize playback, navigation, study, and viewer controls."""
         super().__init__(parent)
         self._setup_ui()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build the transport buttons and the viewer action menu."""
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 4, 0, 4)
         layout.addStretch(1)
@@ -81,6 +83,7 @@ class TransportBar(QWidget):
 
         layout.addStretch(1)
 
-    def set_playing_state(self, is_playing: bool):
+    def set_playing_state(self, is_playing: bool) -> None:
+        """Show Pause while playback is active and Play otherwise."""
+        """Update the play button label to match the playback state."""
         self.play_btn.setText(t("pause") if is_playing else t("play"))
-

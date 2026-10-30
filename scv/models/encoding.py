@@ -26,19 +26,19 @@ class EncodeTask:
     progress: float = 0.0
     error: str | None = None
 
-    def mark_encoding(self, progress: float = 0.0):
+    def mark_encoding(self, progress: float = 0.0) -> None:
         """Mark this task as active and update its progress."""
         self.status = EncodeTaskStatus.ENCODING
         self.progress = max(0.0, min(1.0, progress))
         self.error = None
 
-    def mark_completed(self):
+    def mark_completed(self) -> None:
         """Mark this task as successfully completed."""
         self.status = EncodeTaskStatus.COMPLETED
         self.progress = 1.0
         self.error = None
 
-    def mark_failed(self, error: str):
+    def mark_failed(self, error: str) -> None:
         """Mark this task as failed with a user-facing error."""
         self.status = EncodeTaskStatus.FAILED
         self.error = error

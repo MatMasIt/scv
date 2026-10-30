@@ -4,7 +4,16 @@ from __future__ import annotations
 import argparse
 import json
 import math
+from collections.abc import Mapping
 from pathlib import Path
+from typing import TypedDict
+
+
+class PlaybackProgress(TypedDict):
+    """Validated saved playback position and active slide index."""
+
+    position_seconds: float
+    slide_index: int
 
 
 def sidecar_path(source: Path | str) -> Path:
@@ -13,7 +22,7 @@ def sidecar_path(source: Path | str) -> Path:
     return source.with_suffix(".scvnotes")
 
 
-def load(source: Path | str) -> dict:
+def load(source: Path | str) -> dict[str, object]:
     """Load a sidecar, returning an empty document when it does not exist."""
     path = sidecar_path(source)
     if not path.exists():
@@ -28,7 +37,7 @@ def load(source: Path | str) -> dict:
     return data
 
 
-def save(source: Path | str, data: dict) -> Path:
+def save(source: Path | str, data: Mapping[str, object]) -> Path:
     """Save study edits while preserving the separately saved play position."""
     path = sidecar_path(source)
     payload = {
@@ -44,7 +53,7 @@ def save(source: Path | str, data: dict) -> Path:
     return _write_sidecar(path, payload)
 
 
-def load_progress(source: Path | str) -> dict | None:
+def load_progress(source: Path | str) -> PlaybackProgress | None:
     """Return a valid saved position, or ``None`` when progress is absent."""
     progress = load(source).get("progress")
     if not isinstance(progress, dict):
@@ -100,7 +109,7 @@ def save_progress(
     return _write_sidecar(sidecar_path(source), payload)
 
 
-def _write_sidecar(path: Path, payload: dict) -> Path:
+def _write_sidecar(path: Path, payload: Mapping[str, object]) -> Path:
     """Atomically replace one sidecar JSON file."""
     part = path.with_suffix(path.suffix + ".part")
     part.write_text(
@@ -111,7 +120,7 @@ def _write_sidecar(path: Path, payload: dict) -> Path:
     return path
 
 
-def main(argv=None):
+def main(argv: list[str] | None=None) -> int:
     """List bookmarks for a lecture from the command line."""
     parser = argparse.ArgumentParser(prog="scv-bookmarks")
     parser.add_argument("file", type=Path)

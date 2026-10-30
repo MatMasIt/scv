@@ -17,13 +17,16 @@ class NormalizedPoint:
         return math.hypot(self.x - other.x, self.y - other.y)
 
     def to_tuple(self) -> tuple[float, float]:
+        """Return the point coordinates as an immutable pair."""
         return (self.x, self.y)
 
     def to_list(self) -> list[float]:
+        """Return rounded point coordinates as a JSON-friendly list."""
         return [round(self.x, 5), round(self.y, 5)]
 
     @classmethod
     def from_tuple_or_list(cls, coords: tuple[float, float] | list[float]) -> NormalizedPoint:
+        """Create a normalized point from a coordinate pair."""
         return cls(float(coords[0]), float(coords[1]))
 
 

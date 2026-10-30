@@ -1,14 +1,20 @@
 """Interactive slide canvas widget with zoom, pan, and annotation tools."""
 
 from __future__ import annotations
-from PySide6.QtCore import Qt, Signal, QPointF
+
+from collections.abc import Mapping, Sequence
+
+from PySide6.QtCore import Qt, Signal, QPointF, QRectF
 from PySide6.QtGui import (
     QPixmap,
     QPainter,
     QColor,
     QPen,
+    QPaintEvent,
+    QMouseEvent,
+    QWheelEvent,
 )
-from PySide6.QtWidgets import QLabel
+from PySide6.QtWidgets import QLabel, QWidget
 
 from scv.models.geometry import NormalizedPoint
 from scv.models.study import AnnotationStroke
@@ -23,7 +29,8 @@ class ZoomableViewer(QLabel):
     annotationClicked = Signal(int)
     annotationCompleted = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize the slide canvas, navigation state, and annotation tools."""
         super().__init__(t("open_scv_to_begin"), parent)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.setStyleSheet("background: #111827; color: #f9fafb; border-radius: 6px;")
@@ -44,6 +51,7 @@ class ZoomableViewer(QLabel):
 
     @property
     def transform(self) -> ViewportTransform:
+        """Return the current mapping between image and widget coordinates."""
         return ViewportTransform(
             widget_size=self.size(),
             image_size=self._pixmap.size(),
@@ -51,11 +59,15 @@ class ZoomableViewer(QLabel):
             offset=self._offset,
         )
 
-    def setPixmap(self, pixmap: QPixmap):
+    def setPixmap(self, pixmap: QPixmap) -> None:
+        """Set the slide image and schedule the viewer to repaint."""
         self._pixmap = pixmap
         self.update()
 
-    def set_annotations(self, annotations: list[AnnotationStroke | dict]):
+    def set_annotations(
+        self,
+        annotations: Sequence[AnnotationStroke | Mapping[str, object]] | None,
+    ) -> None:
         """Replace annotations with typed strokes."""
         typed_annotations = []
         for a in annotations or []:
@@ -67,11 +79,13 @@ class ZoomableViewer(QLabel):
         self.selected_annotation = None
         self.update()
 
-    def set_selected_annotation(self, index: int | None):
+    def set_selected_annotation(self, index: int | None) -> None:
+        """Select an annotation by index, or clear the selection with None."""
         self.selected_annotation = index
         self.update()
 
-    def set_annotation_mode(self, mode: DrawingTool | str | None):
+    def set_annotation_mode(self, mode: DrawingTool | str | None) -> None:
+        """Choose a drawing tool or return to selection and panning mode."""
         if isinstance(mode, DrawingTool):
             self._active_tool = mode
         elif isinstance(mode, str):
@@ -86,23 +100,28 @@ class ZoomableViewer(QLabel):
         )
         self.setCursor(cursor)
 
-    def clear_annotations(self):
+    def clear_annotations(self) -> None:
+        """Remove all strokes and clear the selected annotation."""
         self.annotations.clear()
         self.selected_annotation = None
         self.update()
 
-    def reset_view(self):
+    def reset_view(self) -> None:
+        """Reset zoom and panning to the image-fit view."""
         self._zoom = 1.0
         self._offset = QPointF()
         self.update()
 
-    def zoom_in(self):
+    def zoom_in(self) -> None:
+        """Increase zoom around the center of the widget."""
         self._set_zoom(self._zoom * 1.25, QPointF(self.rect().center()))
 
-    def zoom_out(self):
+    def zoom_out(self) -> None:
+        """Decrease zoom around the center of the widget."""
         self._set_zoom(self._zoom / 1.25, QPointF(self.rect().center()))
 
-    def _set_zoom(self, zoom: float, anchor: QPointF):
+    def _set_zoom(self, zoom: float, anchor: QPointF) -> None:
+        """Set a bounded zoom factor while keeping the anchor point fixed."""
         trans = self.transform
         old_scale = trans.scale
         new_zoom = max(1.0, min(8.0, zoom))
@@ -113,7 +132,8 @@ class ZoomableViewer(QLabel):
         self._zoom = new_zoom
         self.update()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QPaintEvent) -> None:
+        """Paint the widget’s current visual state."""
         if self._pixmap.isNull():
             super().paintEvent(event)
             return
@@ -122,14 +142,12 @@ class ZoomableViewer(QLabel):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         trans = self.transform
 
-        # Draw scaled slide pixmap
+        # Let QPainter scale the source image instead of allocating a new pixmap
+        # for every repaint (mouse movement can trigger many repaints per second).
         painter.drawPixmap(
-            trans.top_left,
-            self._pixmap.scaled(
-                trans.rendered_size,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            ),
+            trans.image_rect,
+            self._pixmap,
+            QRectF(self._pixmap.rect()),
         )
 
         # Draw persistent and in-progress strokes
@@ -160,13 +178,15 @@ class ZoomableViewer(QLabel):
             painter.setPen(pen)
             painter.drawPolyline(points)
 
-    def wheelEvent(self, event):
+    def wheelEvent(self, event: QWheelEvent) -> None:
+        """Handle pointer-wheel input for the viewer."""
         delta = event.angleDelta().y()
         factor = 1.2 if delta > 0 else (1.0 / 1.2)
         self._set_zoom(self._zoom * factor, event.position())
         event.accept()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QMouseEvent) -> None:
+        """Handle a pointer press on this widget."""
         if event.button() != Qt.MouseButton.LeftButton or self._pixmap.isNull():
             super().mousePressEvent(event)
             return
@@ -193,8 +213,9 @@ class ZoomableViewer(QLabel):
         self.setCursor(Qt.CursorShape.ClosedHandCursor)
         event.accept()
 
-    def mouseMoveEvent(self, event):
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:
         # 1. Extending active drawing stroke
+        """Handle pointer movement over this widget."""
         if self._current_stroke_points is not None:
             norm_pt = self.transform.to_normalized(event.position())
             if norm_pt:
@@ -213,7 +234,8 @@ class ZoomableViewer(QLabel):
 
         super().mouseMoveEvent(event)
 
-    def mouseReleaseEvent(self, event):
+    def mouseReleaseEvent(self, event: QMouseEvent) -> None:
+        """Handle a pointer release on this widget."""
         if event.button() == Qt.MouseButton.LeftButton:
             # 1. Complete drawing stroke
             if self._current_stroke_points is not None:
@@ -243,7 +265,8 @@ class ZoomableViewer(QLabel):
 
         super().mouseReleaseEvent(event)
 
-    def mouseDoubleClickEvent(self, event):
+    def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
+        """Handle a double-click on this widget."""
         if event.button() == Qt.MouseButton.LeftButton:
             self.reset_view()
             event.accept()
@@ -251,6 +274,7 @@ class ZoomableViewer(QLabel):
             super().mouseDoubleClickEvent(event)
 
     def _annotation_at(self, position: QPointF) -> int | None:
+        """Return the topmost stroke hit by the widget-space pointer position."""
         trans = self.transform
         point = trans.to_normalized(position)
         if not point:

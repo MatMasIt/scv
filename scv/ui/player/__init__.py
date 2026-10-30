@@ -7,7 +7,7 @@ from .document import StudyDocument
 from .controller import PlayerController
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Create the player application and start its Qt event loop."""
     app = QApplication.instance()
     owns_app = False

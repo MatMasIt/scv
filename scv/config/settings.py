@@ -4,6 +4,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field, asdict
 import json
 from pathlib import Path
+from collections.abc import Mapping
+from typing import Any
 
 
 @dataclass
@@ -31,7 +33,7 @@ class AppSettings:
     default_crf: int = 20
     default_ocr_lang: str = "eng"
 
-    def validate(self):
+    def validate(self) -> None:
         """Sanitize settings values to bounded ranges."""
         if self.language not in ("en", "it", "fr"):
             self.language = "en"
@@ -48,17 +50,19 @@ class AppSettings:
         if not (0 <= self.default_crf <= 51):
             self.default_crf = 20
 
-    def add_recent_file(self, path: str | Path):
+    def add_recent_file(self, path: str | Path) -> None:
         """Prepend a file path to recent files list and enforce limit."""
         path_str = str(Path(path).expanduser().resolve())
         filtered = [p for p in self.recent_files if p != path_str]
         self.recent_files = [path_str] + filtered[: self.max_recent_files - 1]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, object]:
+        """Serialize application preferences for JSON persistence."""
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: dict) -> AppSettings:
+    def from_dict(cls, data: Mapping[str, Any]) -> AppSettings:
+        """Create and validate settings from decoded configuration data."""
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered = {k: v for k, v in data.items() if k in valid_keys}
         instance = cls(**filtered)

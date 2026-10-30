@@ -4,6 +4,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import PurePosixPath
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from scv.core.archive import LectureManifest
 
 
 @dataclass(frozen=True)
@@ -25,7 +29,7 @@ class Lecture:
     title: str | None = None
 
     @classmethod
-    def from_manifest(cls, manifest: dict) -> Lecture:
+    def from_manifest(cls, manifest: LectureManifest) -> Lecture:
         """Build a runtime model from a validated archive manifest."""
         slides = tuple(
             Slide(

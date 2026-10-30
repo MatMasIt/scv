@@ -1,7 +1,12 @@
 """Shared formatting and asset resolution utilities for Qt applications."""
 
 from __future__ import annotations
+
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from PySide6.QtGui import QIcon
 
 
 def fmt_time(ms: float | int) -> str:
@@ -22,7 +27,7 @@ def get_asset_path(filename: str) -> Path | None:
     return None
 
 
-def load_app_icon():
+def load_app_icon() -> QIcon | None:
     """Load the default application icon if available."""
     try:
         from PySide6.QtGui import QIcon

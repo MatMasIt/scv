@@ -14,13 +14,15 @@ class ExportWorker(QThread):
     finished_ok = Signal(str)
     failed = Signal(str)
 
-    def __init__(self, src: Path | str, dest: Path | str, crf: int):
+    def __init__(self, src: Path | str, dest: Path | str, crf: int) -> None:
+        """Initialize this component and its state."""
         super().__init__()
         self.src, self.dest, self.crf = src, dest, crf
         self.job = Job()
         self.service = ExportService()
 
-    def run(self):
+    def run(self) -> None:
+        """Run this background operation."""
         try:
             self.service.export(
                 self.src,

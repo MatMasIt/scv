@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-from PySide6.QtCore import Qt, Signal, QEvent
-from PySide6.QtGui import QColor
+from PySide6.QtCore import Qt, Signal, QEvent, QObject, QPoint
+from PySide6.QtGui import QColor, QKeyEvent
 from PySide6.QtWidgets import (
     QDockWidget,
     QWidget,
@@ -35,14 +35,17 @@ class StudyItemTarget:
 
     @property
     def is_annotation(self) -> bool:
+        """Return whether this target refers to a slide annotation."""
         return self.kind == "annotation"
 
     @property
     def is_bookmark(self) -> bool:
+        """Return whether this target refers to a bookmark."""
         return self.kind == "bookmark"
 
     @property
     def is_note(self) -> bool:
+        """Return whether this target refers to a note."""
         return self.kind == "note"
 
 
@@ -61,7 +64,8 @@ class StudyDockWidget(QDockWidget):
     noteVisibilityChanged = Signal(int, bool)
     selectionChanged = Signal(bool)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize the study lists, editing actions, and drawing tools."""
         super().__init__(t("study"), parent)
         self.setAllowedAreas(
             Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea
@@ -69,7 +73,8 @@ class StudyDockWidget(QDockWidget):
         self.tool_buttons: dict[DrawingTool, QToolButton] = {}
         self._setup_ui()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build the study tabs, editing buttons, and annotation toolbar."""
         panel = QWidget()
         layout = QVBoxLayout(panel)
 
@@ -148,7 +153,8 @@ class StudyDockWidget(QDockWidget):
         self.setWidget(panel)
         self._refresh_actions()
 
-    def set_active_tool(self, tool: DrawingTool):
+    def set_active_tool(self, tool: DrawingTool) -> None:
+        """Mark the selected drawing tool as active in the toolbar."""
         btn = self.tool_buttons.get(tool)
         if btn:
             btn.setChecked(True)
@@ -164,7 +170,7 @@ class StudyDockWidget(QDockWidget):
         data = item.data(Qt.ItemDataRole.UserRole)
         return data if isinstance(data, StudyItemTarget) else None
 
-    def refresh_from_document(self, document: StudyDocument):
+    def refresh_from_document(self, document: StudyDocument) -> None:
         """Populate list widgets with typed items from ``document``."""
         for widget in (self.bookmark_list, self.note_list, self.annotation_list):
             widget.blockSignals(True)
@@ -203,7 +209,8 @@ class StudyDockWidget(QDockWidget):
 
         self._refresh_actions()
 
-    def select_annotation(self, slide_index: int, annotation_index: int):
+    def select_annotation(self, slide_index: int, annotation_index: int) -> None:
+        """Select the requested annotation."""
         self.study_tabs.setCurrentWidget(self.annotation_list)
         for row in range(self.annotation_list.count()):
             item = self.annotation_list.item(row)
@@ -216,14 +223,17 @@ class StudyDockWidget(QDockWidget):
                 self.annotation_list.setCurrentItem(item)
                 return
 
-    def select_note_at_index(self, index: int):
+    def select_note_at_index(self, index: int) -> None:
+        """Select the requested note at index."""
         self.study_tabs.setCurrentWidget(self.note_list)
         if 0 <= index < self.note_list.count():
             self.note_list.setCurrentRow(index)
 
-    def eventFilter(self, watched, event):
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:
+        """Delete the selected study item when Delete is pressed in a list."""
         if (
             watched in (self.bookmark_list, self.note_list, self.annotation_list)
+            and isinstance(event, QKeyEvent)
             and event.type() == QEvent.Type.KeyPress
             and event.key() == Qt.Key.Key_Delete
             and watched.currentItem() is not None
@@ -233,19 +243,23 @@ class StudyDockWidget(QDockWidget):
             return True
         return super().eventFilter(watched, event)
 
-    def _on_tab_changed(self):
+    def _on_tab_changed(self) -> None:
+        """Refresh editing actions after the active study tab changes."""
         self._refresh_actions()
 
-    def _on_selection_changed(self):
+    def _on_selection_changed(self) -> None:
+        """Refresh editing actions after the selected item changes."""
         self._refresh_actions()
 
-    def _refresh_actions(self):
+    def _refresh_actions(self) -> None:
+        """Enable edit and delete actions when a study item is selected."""
         has_item = self.current_target() is not None
         self.edit_btn.setEnabled(has_item)
         self.delete_btn.setEnabled(has_item)
         self.selectionChanged.emit(has_item)
 
-    def _on_item_clicked(self, item: QListWidgetItem):
+    def _on_item_clicked(self, item: QListWidgetItem) -> None:
+        """Navigate to the study item selected by the user."""
         target = item.data(Qt.ItemDataRole.UserRole)
         if not isinstance(target, StudyItemTarget):
             return
@@ -257,13 +271,15 @@ class StudyDockWidget(QDockWidget):
         elif target.is_note:
             self.jumpToNoteRequested.emit(target.index)
 
-    def _on_note_item_changed(self, item: QListWidgetItem):
+    def _on_note_item_changed(self, item: QListWidgetItem) -> None:
+        """Forward a note visibility change from the list."""
         target = item.data(Qt.ItemDataRole.UserRole)
         if isinstance(target, StudyItemTarget) and target.is_note:
             show = item.checkState() == Qt.CheckState.Checked
             self.noteVisibilityChanged.emit(target.index, show)
 
-    def _on_context_menu(self, position):
+    def _on_context_menu(self, position: QPoint) -> None:
+        """Show the context menu for the selected study item."""
         widget = self.sender()
         if not isinstance(widget, QListWidget):
             return

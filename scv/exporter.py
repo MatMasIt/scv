@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 import argparse
+from collections.abc import Callable
 from pathlib import Path
 import subprocess
 import sys
@@ -11,7 +12,7 @@ from PIL import Image
 from .core import inspect, extract, frame_at, Job, ffmpeg_bin
 
 
-def export_video(source, destination, *, crf=20, progress=None, job=None):
+def export_video(source: Path | str, destination: Path | str, *, crf: int=20, progress: Callable[[float, str], None] | None=None, job: Job | None=None) -> Path:
     """Convert an SCV archive to an H.264/AAC MP4 file.
 
     Frame preparation is reported separately from FFmpeg rendering. The
@@ -35,7 +36,10 @@ def export_video(source, destination, *, crf=20, progress=None, job=None):
         frames = []
         for idx, slide in enumerate(slides):
             job.check()
-            image = Image.open(root / slide["image"])
+            image_name = slide.get("image")
+            if image_name is None:
+                raise ValueError(f"Slide {idx + 1} has no image")
+            image = Image.open(root / image_name)
             name = f"frame_{idx:06d}.png"
             image.save(root / name)
             frames.append(name)
@@ -108,7 +112,7 @@ def export_video(source, destination, *, crf=20, progress=None, job=None):
     return destination
 
 
-def main(argv=None):
+def main(argv: list[str] | None=None) -> int:
     """Parse exporter CLI arguments and return a process exit status."""
     parser = argparse.ArgumentParser(description="Export an SCV lecture to MP4")
     parser.add_argument("input", type=Path)

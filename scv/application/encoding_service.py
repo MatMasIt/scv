@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from scv.core import Job, Progress, Settings, encode
+from scv.core.archive import LectureManifest
 from scv.models import EncodeTask
 
 
@@ -17,7 +18,7 @@ class EncodingService:
         settings: Settings,
         progress: Progress | None = None,
         job: Job | None = None,
-    ) -> dict:
+    ) -> LectureManifest:
         """Encode one task and update its domain lifecycle."""
         task.mark_encoding()
         try:

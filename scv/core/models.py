@@ -62,7 +62,7 @@ class Settings:
     ocr_lang: str = "eng"
 
     @classmethod
-    def from_preset(cls, name: str, **overrides) -> Settings:
+    def from_preset(cls, name: str, **overrides: object) -> Settings:
         """Create Settings initialized from a named preset with optional overrides."""
         if name not in PRESETS:
             raise KeyError(f"Unknown preset: {name}. Choose from: {list(PRESETS.keys())}")
@@ -72,7 +72,7 @@ class Settings:
                 config[key] = val
         return cls(**config)
 
-    def validate(self):
+    def validate(self) -> None:
         """Validate codec and slide-detection settings before starting a job."""
         if not 6 <= self.bitrate <= 256:
             raise ValueError("Opus bitrate must be 6-256 kbps")
@@ -97,25 +97,25 @@ class Cancelled(Exception):
 class Job:
     """Run one cancellable FFmpeg job from a worker thread."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create a cancellable job with no active subprocess."""
         self.cancel_event = threading.Event()
         self.process: subprocess.Popen | None = None
 
-    def cancel(self):
+    def cancel(self) -> None:
         """Request cancellation and terminate the active FFmpeg process."""
         self.cancel_event.set()
         if self.process and self.process.poll() is None:
             self.process.kill()
 
-    def check(self):
+    def check(self) -> None:
         """Raise :class:`Cancelled` if cancellation has been requested."""
         if self.cancel_event.is_set():
             raise Cancelled("Conversion cancelled")
 
     def run(
-        self, args, *, progress: Progress | None = None, duration: float | None = None
-    ):
+        self, args: list[str] | tuple[str, ...], *, progress: Progress | None = None, duration: float | None = None
+    ) -> None:
         """Run an FFmpeg command and optionally report media-time progress.
 
         ``args`` is passed as an argument list, never through a shell. When a
@@ -137,6 +137,7 @@ class Job:
         self.process = p
         try:
             if progress and duration and duration > 0:
+                assert p.stdout is not None
                 for line in p.stdout:
                     if line.startswith("out_time_ms="):
                         try:
@@ -166,6 +167,7 @@ class Job:
                                 else "Rendering MP4"
                             ),
                         )
+                assert p.stderr is not None
                 err = p.stderr.read()
                 p.wait()
             else:

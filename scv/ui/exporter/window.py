@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 from pathlib import Path
-from PySide6.QtGui import QAction
+from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -26,7 +26,12 @@ from .worker import ExportWorker
 class ExportWindow(QMainWindow):
     """Desktop interface for selecting and exporting an SCV archive to MP4."""
 
-    def __init__(self, initial_src: Path | str | None = None, parent=None):
+    def __init__(
+        self,
+        initial_src: Path | str | None = None,
+        parent: QWidget | None = None,
+    ) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self.setWindowTitle(t("exporter_title"))
         self.resize(650, 260)
@@ -38,7 +43,8 @@ class ExportWindow(QMainWindow):
         if initial_src:
             self.set_source_path(initial_src)
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build and arrange this widget’s controls."""
         root = QWidget()
         self.setCentralWidget(root)
         layout = QVBoxLayout(root)
@@ -88,24 +94,28 @@ class ExportWindow(QMainWindow):
         about = help_menu.addAction(t("about_and_licenses"))
         about.triggered.connect(lambda: show_about(self, "Exporter"))
 
-    def set_source_path(self, path: Path | str):
+    def set_source_path(self, path: Path | str) -> None:
+        """Display a source archive and derive its default MP4 path."""
         src_path = str(path)
         self.src.setText(src_path)
         self.dst.setText(str(Path(src_path).with_suffix(".mp4")))
 
-    def select_src(self):
+    def select_src(self) -> None:
+        """Select the requested src."""
         name, _ = QFileDialog.getOpenFileName(self, t("open_scv"), "", "SCV (*.scv)")
         if name:
             self.set_source_path(name)
 
-    def select_dst(self):
+    def select_dst(self) -> None:
+        """Select the requested dst."""
         name, _ = QFileDialog.getSaveFileName(
             self, t("save_mp4"), self.dst.text(), "MP4 (*.mp4)"
         )
         if name:
             self.dst.setText(name)
 
-    def convert(self):
+    def convert(self) -> QMessageBox.StandardButton | None:
+        """Validate export paths and start the MP4 export worker."""
         src_file = Path(self.src.text())
         if not src_file.is_file() or not self.dst.text():
             return QMessageBox.warning(
@@ -132,17 +142,20 @@ class ExportWindow(QMainWindow):
         self.cancel_btn.setEnabled(True)
         self.worker.start()
 
-    def cancel_export(self):
+    def cancel_export(self) -> None:
+        """Cancel the current export."""
         if self.worker:
             self.worker.job.cancel()
         self.cancel_btn.setEnabled(False)
 
-    def end(self, message: str):
+    def end(self, message: str) -> None:
+        """Display the export result and restore the action buttons."""
         self.status.setText(message)
         self.start_btn.setEnabled(True)
         self.cancel_btn.setEnabled(False)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event: QCloseEvent) -> None:
+        """Handle a request to close this window."""
         if self.worker and self.worker.isRunning():
             self.worker.job.cancel()
             self.worker.wait(3000)

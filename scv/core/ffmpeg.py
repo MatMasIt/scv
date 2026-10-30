@@ -50,13 +50,13 @@ def tesseract_bin() -> str:
     )
 
 
-def require_ffmpeg():
+def require_ffmpeg() -> None:
     """Verify that both FFmpeg and FFprobe can be resolved."""
     for name in ("ffmpeg", "ffprobe"):
         ffmpeg_bin(name)
 
 
-def _command(args) -> list[str]:
+def _command(args: list[str] | tuple[str, ...]) -> list[str]:
     """Normalize command arguments and replace logical FFmpeg names."""
     normalized = list(map(str, args))
     if normalized and normalized[0] in ("ffmpeg", "ffprobe"):

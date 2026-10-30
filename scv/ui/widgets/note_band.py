@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtWidgets import QLabel
+from PySide6.QtGui import QMouseEvent
+from PySide6.QtWidgets import QLabel, QWidget
 from scv.i18n import t
 
 
@@ -11,7 +12,8 @@ class NoteBand(QLabel):
 
     clicked = Signal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self.setWordWrap(True)
         self.setStyleSheet(
@@ -22,7 +24,7 @@ class NoteBand(QLabel):
         self.setToolTip(t("study_tip"))
         self.hide()
 
-    def mousePressEvent(self, event):
+    def mousePressEvent(self, event: QMouseEvent) -> None:
         """Emit clicked signal when user presses the note banner."""
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()

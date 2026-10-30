@@ -1,7 +1,7 @@
 """Main menu bar component for the SCV Player."""
 
 from __future__ import annotations
-from typing import Callable
+from collections.abc import Callable, Mapping
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction, QKeySequence
 from PySide6.QtWidgets import QMenuBar, QMenu, QWidget
@@ -15,13 +15,19 @@ from scv.ui.common.settings_dialog import SettingsDialog
 class PlayerMenuBar(QMenuBar):
     """Component managing top-level menus, actions, and dynamic enabling."""
 
-    def __init__(self, parent: QWidget, callbacks: dict[str, Callable]):
+    def __init__(
+        self,
+        parent: QWidget,
+        callbacks: Mapping[str, Callable[..., object]],
+    ) -> None:
+        """Create the player menus and connect their actions to callbacks."""
         super().__init__(parent)
         self.callbacks = callbacks
         self.actions_registry: dict[str, QAction] = {}
         self._setup_menus()
 
-    def _setup_menus(self):
+    def _setup_menus(self) -> None:
+        """Create file, study, view, settings, and help menus."""
         cb = self.callbacks
 
         # 1. File Menu
@@ -110,11 +116,21 @@ class PlayerMenuBar(QMenuBar):
         help_menu.addAction(t("menu_keyboard_shortcuts"), cb.get("show_shortcuts"))
         help_menu.addAction(t("menu_about"), lambda: show_about(self.parent(), "Player"))
 
-    def _open_settings(self):
+    def _open_settings(self) -> None:
+        """Open the application preferences dialog."""
+        """Open the application preferences dialog."""
         dlg = SettingsDialog(self.parent())
         dlg.exec()
 
-    def update_action_states(self, has_lecture: bool, has_slide: bool, has_selection: bool, is_dirty: bool):
+    def update_action_states(
+        self,
+        has_lecture: bool,
+        has_slide: bool,
+        has_selection: bool,
+        is_dirty: bool,
+    ) -> None:
+        """Enable menu actions according to lecture, selection, and edit state."""
+        """Update the action states state."""
         for name in ("add_bookmark", "add_note", "select_pan", "pen", "yellow", "green", "show_study"):
             if name in self.actions_registry:
                 self.actions_registry[name].setEnabled(has_lecture)
@@ -129,9 +145,12 @@ class PlayerMenuBar(QMenuBar):
         if "discard_study" in self.actions_registry:
             self.actions_registry["discard_study"].setEnabled(has_lecture and is_dirty)
 
-    def populate_recent_files(self, paths: list[str], open_callback: Callable[[str], None]):
+    def populate_recent_files(
+        self, paths: list[str], open_callback: Callable[[str], None]
+    ) -> None:
+        """Rebuild the recent lecture submenu and connect each path to its opener."""
+        """Rebuild the recent lecture submenu and connect each path to its opener."""
         self.recent_menu.clear()
         for path in paths:
             action = self.recent_menu.addAction(path)
             action.triggered.connect(lambda checked=False, p=path: open_callback(p))
-

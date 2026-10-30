@@ -1,6 +1,6 @@
 """Centralized credits and license notices."""
 
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox, QWidget
 from scv.core import VERSION
 
 ABOUT = """SCV Suite {version} - Slide Compressed Video
@@ -19,6 +19,6 @@ Redistribution requires including relevant copyright notices and license texts f
 """
 
 
-def show_about(parent, product="Suite"):
+def show_about(parent: QWidget, product: str = "Suite") -> None:
     """Display the license and third-party notices for an application."""
     QMessageBox.about(parent, f"About SCV {product}", ABOUT.format(version=VERSION))

@@ -2,32 +2,32 @@
 
 from __future__ import annotations
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPainter, QColor, QPen
-from PySide6.QtWidgets import QSlider
+from PySide6.QtGui import QPainter, QColor, QPen, QPaintEvent
+from PySide6.QtWidgets import QSlider, QWidget
 
 
 class TimelineSlider(QSlider):
     """Horizontal slider that paints slide-change and study markers."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
         """Create a timeline slider with empty marker lists."""
         super().__init__(Qt.Orientation.Horizontal, parent)
         self.markers: list[float] = []
         self.bookmark_markers: list[float] = []
         self.note_markers: list[float] = []
 
-    def set_markers(self, markers: list[float]):
+    def set_markers(self, markers: list[float]) -> None:
         """Set slide transition marker positions as fractions between 0 and 1."""
         self.markers = markers
         self.update()
 
-    def set_study_markers(self, bookmarks: list[float], notes: list[float]):
+    def set_study_markers(self, bookmarks: list[float], notes: list[float]) -> None:
         """Set bookmark and note positions as fractions between 0 and 1."""
         self.bookmark_markers = bookmarks
         self.note_markers = notes
         self.update()
 
-    def paintEvent(self, event):
+    def paintEvent(self, event: QPaintEvent) -> None:
         """Paint the standard slider with custom overlay markers."""
         super().paintEvent(event)
         if not self.maximum():

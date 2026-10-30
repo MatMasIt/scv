@@ -1,10 +1,13 @@
 """Modal dialogs and user prompt abstractions for the SCV Player."""
 
 from __future__ import annotations
+
+from collections.abc import Sequence
 from enum import Enum, auto
 from PySide6.QtWidgets import QWidget, QInputDialog, QMessageBox, QLineEdit
 
 from scv.models.tools import DrawingTool
+from scv.models.study import Bookmark
 from scv.ui.common.utils import fmt_time
 from scv.i18n import t
 
@@ -20,16 +23,19 @@ class PlayerDialogs:
 
     @staticmethod
     def prompt_add_bookmark(parent: QWidget) -> str | None:
+        """Prompt for a bookmark label and return it when accepted."""
         text, ok = QInputDialog.getText(parent, t("add_bookmark_action"), t("label"))
         return text.strip() if ok and text.strip() else None
 
     @staticmethod
     def prompt_add_note(parent: QWidget) -> str | None:
+        """Prompt for note text and return it when accepted."""
         text, ok = QInputDialog.getMultiLineText(parent, t("add_note_action"), t("note"))
         return text.strip() if ok and text.strip() else None
 
     @staticmethod
     def prompt_edit_bookmark(parent: QWidget, current: str) -> str | None:
+        """Prompt for a replacement bookmark label."""
         text, ok = QInputDialog.getText(
             parent, t("edit_bookmark"), t("label"), QLineEdit.EchoMode.Normal, current
         )
@@ -37,6 +43,7 @@ class PlayerDialogs:
 
     @staticmethod
     def prompt_edit_note(parent: QWidget, current: str) -> str | None:
+        """Prompt for replacement note text."""
         text, ok = QInputDialog.getMultiLineText(
             parent, t("edit_note"), t("note"), current
         )
@@ -46,6 +53,7 @@ class PlayerDialogs:
     def prompt_edit_annotation_tool(
         parent: QWidget, current_tool: DrawingTool
     ) -> DrawingTool | None:
+        """Prompt for a replacement pen or highlighter tool."""
         tool_options = [
             DrawingTool.PEN,
             DrawingTool.HIGHLIGHT_YELLOW,
@@ -63,6 +71,7 @@ class PlayerDialogs:
 
     @staticmethod
     def confirm_delete_study_item(parent: QWidget) -> bool:
+        """Ask whether the selected study item should be deleted."""
         choice = QMessageBox.question(
             parent,
             t("delete_study_item_title"),
@@ -74,6 +83,7 @@ class PlayerDialogs:
 
     @staticmethod
     def confirm_discard_changes(parent: QWidget) -> bool:
+        """Ask whether unsaved study changes should be discarded."""
         choice = QMessageBox.question(
             parent,
             t("discard_study_title"),
@@ -85,10 +95,23 @@ class PlayerDialogs:
 
     @staticmethod
     def confirm_save_on_close(parent: QWidget) -> SaveCloseResult:
+        """Ask how to resolve unsaved study changes before closing."""
+        return PlayerDialogs._confirm_save(parent, t("save_study_title"), t("save_study_msg"))
+
+    @staticmethod
+    def confirm_save_before_switch(parent: QWidget) -> SaveCloseResult:
+        """Ask how to resolve unsaved changes before switching lectures."""
+        return PlayerDialogs._confirm_save(
+            parent, t("switch_study_title"), t("switch_study_msg")
+        )
+
+    @staticmethod
+    def _confirm_save(parent: QWidget, title: str, message: str) -> SaveCloseResult:
+        """Return the user's save, discard, or cancel choice."""
         choice = QMessageBox.question(
             parent,
-            t("save_study_title"),
-            t("save_study_msg"),
+            title,
+            message,
             QMessageBox.StandardButton.Save
             | QMessageBox.StandardButton.Discard
             | QMessageBox.StandardButton.Cancel,
@@ -103,7 +126,7 @@ class PlayerDialogs:
                 return SaveCloseResult.CANCEL
 
     @staticmethod
-    def pick_bookmark(parent: QWidget, bookmarks: list) -> int | None:
+    def pick_bookmark(parent: QWidget, bookmarks: Sequence[Bookmark]) -> int | None:
         """Prompt user to pick a bookmark from a list and return its index."""
         if not bookmarks:
             QMessageBox.information(parent, t("bookmarks"), t("no_bookmarks_lecture"))

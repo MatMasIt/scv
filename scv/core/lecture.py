@@ -5,8 +5,10 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 from types import TracebackType
+from PIL import Image
+
 from .archive import LectureManifest, SlideManifest, extract, frame_at, inspect
-from scv.models.lecture import Lecture
+from scv.models.lecture import Lecture, Slide
 
 
 class LectureSession:
@@ -17,7 +19,8 @@ class LectureSession:
         source_path: Path,
         manifest: LectureManifest,
         temporary_directory: tempfile.TemporaryDirectory[str],
-    ):
+    ) -> None:
+        """Keep the validated manifest and own its extracted temporary files."""
         self.source_path = source_path
         self.manifest = manifest
         self.lecture = Lecture.from_manifest(manifest)
@@ -45,7 +48,7 @@ class LectureSession:
         return self.manifest["slides"]
 
     @property
-    def slide_models(self) -> tuple:
+    def slide_models(self) -> tuple[Slide, ...]:
         """Return immutable runtime slide models."""
         return self.lecture.slides
 
@@ -64,17 +67,18 @@ class LectureSession:
         """Return the extracted audio path."""
         return self.root / "audio.opus"
 
-    def frame_at(self, position_seconds: float):
+    def frame_at(self, position_seconds: float) -> Image.Image:
         """Load the slide image active at the given playback position."""
         return frame_at(self.manifest, self.root, position_seconds)
 
-    def close(self):
+    def close(self) -> None:
         """Release extracted resources; safe to call more than once."""
         if self._temporary_directory is not None:
             self._temporary_directory.cleanup()
             self._temporary_directory = None
 
     def __enter__(self) -> LectureSession:
+        """Return this session for use in a context manager."""
         return self
 
     def __exit__(
@@ -83,4 +87,5 @@ class LectureSession:
         exc_value: BaseException | None,
         traceback: TracebackType | None,
     ) -> None:
+        """Release the extracted lecture files when the context ends."""
         self.close()

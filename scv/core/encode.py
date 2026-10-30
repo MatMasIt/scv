@@ -9,7 +9,7 @@ import tempfile
 import zipfile
 from PIL import Image
 
-from .archive import inspect
+from .archive import LectureManifest, inspect
 from .detection import detect_slides
 from .ffmpeg import require_ffmpeg, probe
 from .models import Settings, Job, Progress, VERSION, FORMAT_VERSION
@@ -22,7 +22,7 @@ def encode(
     settings: Settings | None = None,
     progress: Progress | None = None,
     job: Job | None = None,
-) -> dict:
+) -> LectureManifest:
     """Encode a source video into an SCV archive and return its manifest."""
     source, destination = Path(source).expanduser(), Path(destination).expanduser()
     settings = settings or Settings()

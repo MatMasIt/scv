@@ -11,7 +11,7 @@ from .core import ArchiveError, PRESETS, Settings, Job, encode, inspect, VERSION
 from .exporter import export_video
 
 
-def main(argv=None):
+def main(argv: list[str] | None=None) -> int:
     """Parse CLI arguments and run the requested SCV operation."""
     # When no arguments are provided and running in an interactive terminal,
     # launch the SCV Studio GUI if a desktop display exists, otherwise show help.

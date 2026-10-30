@@ -26,14 +26,16 @@ class QueuePanel(QWidget):
     customOutputRequested = Signal(int)
     defaultFolderChanged = Signal(str)
 
-    def __init__(self, default_folder: str, parent=None):
+    def __init__(self, default_folder: str, parent: QWidget | None = None) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self.default_folder = default_folder
         self._language_listener = self._on_language_changed
         self._setup_ui()
         I18nManager.get_instance().add_listener(self._language_listener)
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build and arrange this widget’s controls."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
 
@@ -86,10 +88,11 @@ class QueuePanel(QWidget):
         layout.addLayout(out_row)
         self.retranslate_ui()
 
-    def _on_language_changed(self, _language: str):
+    def _on_language_changed(self, _language: str) -> None:
+        """Handle changes to language."""
         self.retranslate_ui()
 
-    def retranslate_ui(self):
+    def retranslate_ui(self) -> None:
         """Refresh visible strings after the active language changes."""
         self.add_btn.setText(t("add_videos"))
         self.remove_btn.setText(t("remove_selected"))
@@ -100,7 +103,8 @@ class QueuePanel(QWidget):
         self._output_label.setText(t("default_output_folder"))
         self.browse_btn.setText(t("browse"))
 
-    def _browse_files(self):
+    def _browse_files(self) -> None:
+        """Open a file picker and emit the selected source videos."""
         files, _ = QFileDialog.getOpenFileNames(
             self,
             t("add_videos"),
@@ -110,7 +114,8 @@ class QueuePanel(QWidget):
         if files:
             self.filesSelected.emit(files)
 
-    def _browse_folder(self):
+    def _browse_folder(self) -> None:
+        """Choose and emit a default output folder."""
         folder = QFileDialog.getExistingDirectory(
             self, t("default_output_folder"), self.output_edit.text()
         )
@@ -118,12 +123,14 @@ class QueuePanel(QWidget):
             self.output_edit.setText(folder)
             self.defaultFolderChanged.emit(folder)
 
-    def _on_double_clicked(self):
+    def _on_double_clicked(self) -> None:
+        """Handle a click on double."""
         row = self.list_widget.currentRow()
         if row >= 0:
             self.customOutputRequested.emit(row)
 
-    def set_enabled_state(self, enabled: bool):
+    def set_enabled_state(self, enabled: bool) -> None:
+        """Enable or disable queue editing controls."""
         self.add_btn.setEnabled(enabled)
         self.remove_btn.setEnabled(enabled)
         self.clear_btn.setEnabled(enabled)
@@ -136,21 +143,21 @@ class QueuePanel(QWidget):
         """Return the selected queue row, or ``-1`` when there is none."""
         return self.list_widget.currentRow()
 
-    def add_item(self, text: str):
+    def add_item(self, text: str) -> None:
         """Append a display item to the queue list."""
         self.list_widget.addItem(text)
 
-    def set_item_text(self, row: int, text: str):
+    def set_item_text(self, row: int, text: str) -> None:
         """Update a queue row when it still exists."""
         item = self.list_widget.item(row)
         if item is not None:
             item.setText(text)
 
-    def remove_rows(self, rows: list[int]):
+    def remove_rows(self, rows: list[int]) -> None:
         """Remove queue rows in descending order."""
         for row in sorted(rows, reverse=True):
             self.list_widget.takeItem(row)
 
-    def clear_items(self):
+    def clear_items(self) -> None:
         """Remove all displayed queue items."""
         self.list_widget.clear()

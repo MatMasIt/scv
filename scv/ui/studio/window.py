@@ -3,9 +3,10 @@
 from __future__ import annotations
 from pathlib import Path
 import sys
+from collections.abc import Callable
 
 from PySide6.QtCore import Qt, QSettings
-from PySide6.QtGui import QAction, QFont
+from PySide6.QtGui import QAction, QDragEnterEvent, QDropEvent, QFont
 from PySide6.QtWidgets import (
     QMainWindow,
     QWidget,
@@ -33,7 +34,8 @@ from scv.i18n import t
 class StudioWindow(QMainWindow):
     """Central unified application shell for SCV Studio."""
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self.setWindowTitle(f"SCV Studio {VERSION}")
         self.resize(920, 620)
@@ -47,7 +49,8 @@ class StudioWindow(QMainWindow):
         self._setup_menus()
         self.refresh_recent_lectures()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build and arrange this widget’s controls."""
         central = QWidget()
         self.setCentralWidget(central)
         main_layout = QVBoxLayout(central)
@@ -137,9 +140,10 @@ class StudioWindow(QMainWindow):
         title: str,
         description: str,
         button_text: str,
-        callback,
+        callback: Callable[[], None],
         accent_color: str,
     ) -> QFrame:
+        """Build a launch card with a title, description, and action button."""
         card = QFrame()
         card.setFrameShape(QFrame.Shape.StyledPanel)
         card.setStyleSheet(
@@ -169,7 +173,8 @@ class StudioWindow(QMainWindow):
 
         return card
 
-    def _setup_menus(self):
+    def _setup_menus(self) -> None:
+        """Create File, Tools, and Help menus for the studio window."""
         file_menu = self.menuBar().addMenu(t("menu_file"))
         open_action = QAction(t("menu_open_lecture"), self)
         open_action.setShortcut("Ctrl+O")
@@ -200,7 +205,8 @@ class StudioWindow(QMainWindow):
         about_act.triggered.connect(lambda: show_about(self, "Studio"))
         help_menu.addAction(about_act)
 
-    def refresh_recent_lectures(self):
+    def refresh_recent_lectures(self) -> None:
+        """Refresh the recent lectures display."""
         player_settings = QSettings("SCV", "Player")
         recent = player_settings.value("recent", [], type=list)
         self.recent_list.clear()
@@ -217,7 +223,8 @@ class StudioWindow(QMainWindow):
             item.setData(Qt.ItemDataRole.UserRole, str(p))
             self.recent_list.addItem(item)
 
-    def launch_player(self, file_path: Path | str | None = None):
+    def launch_player(self, file_path: Path | str | None = None) -> None:
+        """Open the player application window."""
         target = file_path
         if not target:
             path, _ = QFileDialog.getOpenFileName(
@@ -231,26 +238,31 @@ class StudioWindow(QMainWindow):
         self.active_tool_windows.append(win)
         win.show()
 
-    def launch_encoder(self):
+    def launch_encoder(self) -> None:
+        """Open the encoder application window."""
         win = EncoderWindow()
         self.active_tool_windows.append(win)
         win.show()
 
-    def launch_exporter(self):
+    def launch_exporter(self) -> None:
+        """Open the exporter application window."""
         win = ExportWindow()
         self.active_tool_windows.append(win)
         win.show()
 
-    def _on_recent_double_clicked(self, item: QListWidgetItem):
+    def _on_recent_double_clicked(self, item: QListWidgetItem) -> None:
+        """Handle a click on recent double."""
         path = item.data(Qt.ItemDataRole.UserRole)
         if path and Path(path).exists():
             self.launch_player(path)
 
-    def dragEnterEvent(self, event):
+    def dragEnterEvent(self, event: QDragEnterEvent) -> None:
+        """Accept supported file drag operations."""
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
 
-    def dropEvent(self, event):
+    def dropEvent(self, event: QDropEvent) -> None:
+        """Handle supported files dropped onto this window."""
         for url in event.mimeData().urls():
             if url.isLocalFile() and url.toLocalFile().lower().endswith(".scv"):
                 self.launch_player(url.toLocalFile())

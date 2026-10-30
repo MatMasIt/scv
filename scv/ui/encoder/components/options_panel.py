@@ -23,7 +23,13 @@ from scv.i18n import I18nManager
 class OptionsPanel(QWidget):
     """Component managing presets, codec controls, and OCR settings."""
 
-    def __init__(self, default_preset: str = "Balanced", default_ocr_lang: str = "eng", parent=None):
+    def __init__(
+        self,
+        default_preset: str = "Balanced",
+        default_ocr_lang: str = "eng",
+        parent: QWidget | None = None,
+    ) -> None:
+        """Initialize this component and its state."""
         super().__init__(parent)
         self.default_preset = default_preset
         self.default_ocr_lang = default_ocr_lang
@@ -31,7 +37,8 @@ class OptionsPanel(QWidget):
         self._setup_ui()
         I18nManager.get_instance().add_listener(self._language_listener)
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build and arrange this widget’s controls."""
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 4, 0, 4)
 
@@ -136,10 +143,11 @@ class OptionsPanel(QWidget):
         self._on_ocr_toggled(False)
         self.retranslate_ui()
 
-    def _on_language_changed(self, _language: str):
+    def _on_language_changed(self, _language: str) -> None:
+        """Handle changes to language."""
         self.retranslate_ui()
 
-    def retranslate_ui(self):
+    def retranslate_ui(self) -> None:
         """Refresh visible strings after the active language changes."""
         self._mode_label.setText(t("mode"))
         self._preset_label.setText(t("preset"))
@@ -164,10 +172,12 @@ class OptionsPanel(QWidget):
         else:
             self.ocr_status.setText(t("ocr_disabled"))
 
-    def _on_mode_changed(self, index: int):
+    def _on_mode_changed(self, index: int) -> None:
+        """Handle changes to mode."""
         self.options_container.setVisible(index == 1)
 
-    def _on_ocr_toggled(self, enabled: bool):
+    def _on_ocr_toggled(self, enabled: bool) -> None:
+        """Handle the ocr toggled event."""
         self.ocr_check_btn.setEnabled(enabled)
         self.ocr_lang.setEnabled(enabled)
         if enabled:
@@ -177,6 +187,7 @@ class OptionsPanel(QWidget):
             self.ocr_status.setStyleSheet("")
 
     def check_tesseract(self) -> bool:
+        """Check the tesseract configuration."""
         try:
             path = tesseract_bin()
         except RuntimeError as exc:
@@ -189,7 +200,8 @@ class OptionsPanel(QWidget):
         self.ocr_status.setStyleSheet("color: #15803d;")
         return True
 
-    def apply_preset(self, name: str):
+    def apply_preset(self, name: str) -> None:
+        """Apply the selected preset."""
         if name in PRESETS:
             p = PRESETS[name]
             self.bitrate.setValue(p["bitrate"])
@@ -201,6 +213,7 @@ class OptionsPanel(QWidget):
             self.stereo.setChecked(p["stereo"])
 
     def get_settings(self) -> Settings:
+        """Build and validate encoding settings from the current controls."""
         return Settings(
             bitrate=self.bitrate.value(),
             quality=self.quality.value(),

@@ -14,10 +14,12 @@ class DrawingTool(Enum):
 
     @property
     def is_drawing_tool(self) -> bool:
+        """Return whether this tool creates annotation strokes."""
         return self != DrawingTool.SELECT_PAN
 
     @property
     def is_highlighter(self) -> bool:
+        """Return whether this tool is a highlighter."""
         return self in (DrawingTool.HIGHLIGHT_YELLOW, DrawingTool.HIGHLIGHT_GREEN)
 
     @property
@@ -40,6 +42,7 @@ class DrawingTool(Enum):
 
     @property
     def display_name(self) -> str:
+        """Return the user-facing name of this drawing tool."""
         match self:
             case DrawingTool.SELECT_PAN:
                 return "Select / pan"
@@ -75,6 +78,7 @@ class DrawingTool(Enum):
 
     @property
     def icon_symbol(self) -> str:
+        """Return the symbol used for this tool’s button."""
         match self:
             case DrawingTool.SELECT_PAN:
                 return "↖"

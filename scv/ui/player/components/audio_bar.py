@@ -20,11 +20,13 @@ class AudioBar(QWidget):
     mutedChanged = Signal(bool)
     volumeChanged = Signal(int)
 
-    def __init__(self, parent=None):
+    def __init__(self, parent: QWidget | None = None) -> None:
+        """Initialize playback speed, mute, volume, and slide controls."""
         super().__init__(parent)
         self._setup_ui()
 
-    def _setup_ui(self):
+    def _setup_ui(self) -> None:
+        """Build the audio, slide information, and volume controls."""
         layout = QHBoxLayout(self)
         layout.setContentsMargins(0, 2, 0, 2)
 
@@ -54,8 +56,9 @@ class AudioBar(QWidget):
         self.volume_slider.valueChanged.connect(self.volumeChanged.emit)
         layout.addWidget(self.volume_slider)
 
-    def update_slide_info(self, current_slide_index: int, total_slides: int):
+    def update_slide_info(self, current_slide_index: int, total_slides: int) -> None:
+        """Display the current slide number and total slide count."""
+        """Update the slide info state."""
         self.slide_label.setText(
             t("slide_counter", current=current_slide_index + 1, total=total_slides)
         )
-

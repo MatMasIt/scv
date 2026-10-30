@@ -6,7 +6,7 @@ from .window import EncoderWindow
 from .worker import QueueWorker
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     """Create the encoder application and start its Qt event loop."""
     app = QApplication.instance()
     owns_app = False

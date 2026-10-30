@@ -13,7 +13,8 @@ class SlideTimeline:
     tested independently from the multimedia backend and the UI.
     """
 
-    def __init__(self, timestamps: Sequence[float] = ()):
+    def __init__(self, timestamps: Sequence[float] = ()) -> None:
+        """Validate and store ordered slide timestamps."""
         values = tuple(float(timestamp) for timestamp in timestamps)
         if any(timestamp < 0 for timestamp in values):
             raise ValueError("Slide timestamps cannot be negative")
@@ -27,6 +28,7 @@ class SlideTimeline:
         return self._timestamps
 
     def __len__(self) -> int:
+        """Return the number of slide timestamps."""
         return len(self._timestamps)
 
     def current_index(self, position_seconds: float) -> int:
