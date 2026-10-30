@@ -7,6 +7,7 @@ from PIL.ImageQt import ImageQt
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import (
     QPixmap,
+    QPalette,
     QKeySequence,
     QShortcut,
 )
@@ -89,10 +90,7 @@ class PlayerWindow(QMainWindow):
 
         self.resume_banner = QWidget()
         self.resume_banner.setObjectName("resumeBanner")
-        self.resume_banner.setStyleSheet(
-            "QWidget#resumeBanner { background: #eef2ff; border: 1px solid #c7d2fe; "
-            "border-radius: 6px; }"
-        )
+        self._apply_resume_banner_theme()
         resume_layout = QHBoxLayout(self.resume_banner)
         self.resume_label = QLabel()
         self.resume_label.setWordWrap(True)
@@ -413,6 +411,7 @@ class PlayerWindow(QMainWindow):
 
     def _on_config_changed(self, settings):
         """Apply resume preference changes while a lecture is open."""
+        self._apply_resume_banner_theme(settings.theme)
         was_enabled = self._resume_setting_enabled
         self._resume_setting_enabled = settings.resume_playback
         if not settings.resume_playback:
@@ -427,6 +426,30 @@ class PlayerWindow(QMainWindow):
                 self._start_progress_timer()
         else:
             self._start_progress_timer()
+
+    def _apply_resume_banner_theme(self, theme: str | None = None):
+        """Keep the resume prompt readable in the active color theme."""
+        theme = theme or self.config_mgr.settings.theme
+        if theme == "dark":
+            background, border, foreground = "#1e293b", "#475569", "#e2e8f0"
+        elif theme == "light":
+            background, border, foreground = "#eef2ff", "#c7d2fe", "#1f2937"
+        else:
+            window_color = self.palette().color(QPalette.ColorRole.Window)
+            if window_color.lightness() < 128:
+                background, border, foreground = "#1e293b", "#475569", "#e2e8f0"
+            else:
+                background, border, foreground = "#eef2ff", "#c7d2fe", "#1f2937"
+
+        self.resume_banner.setStyleSheet(
+            "QWidget#resumeBanner { "
+            f"background: {background}; border: 1px solid {border}; "
+            "border-radius: 6px; "
+            "} "
+            "QWidget#resumeBanner QLabel, QWidget#resumeBanner QPushButton { "
+            f"color: {foreground}; "
+            "}"
+        )
 
     def _save_playback_progress(
         self,
